@@ -13,10 +13,10 @@ fn main() {
     let crate_lines = get_crate_lines();
     let mut stacks: Vec<Vec<char>> = get_crate_stacks(&crate_lines);
     apply_move_commands(&mut stacks);
-    print_top_crates(&mut stacks);
+    print_top_crates(&stacks);
 }
 
-fn print_top_crates(stacks: &mut Vec<Vec<char>>) {
+fn print_top_crates(stacks: &Vec<Vec<char>>) {
     print!("Crates on top of the stacks: ");
     for stack in stacks {
         print!("{}", stack.last().unwrap());
