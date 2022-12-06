@@ -3,6 +3,9 @@ extern crate core;
 use std::io::{BufRead, Read};
 use regex::Regex;
 
+const VERSION_1: i32 = 9000;
+const VERSION_1_1: i32 = 9001;
+
 struct MoveCommand {
     crates_count: usize,
     src_stack: usize,
@@ -10,21 +13,38 @@ struct MoveCommand {
 }
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let first_opt = args.get(1);
+    let crate_mover_version;
+    if first_opt.is_none() {
+        crate_mover_version = VERSION_1;
+    } else {
+        crate_mover_version = match first_opt.unwrap().parse().unwrap() {
+            VERSION_1 => VERSION_1,
+            VERSION_1_1 => VERSION_1_1,
+            _ => panic!("Unknown version"),
+        }
+    }
+
     let crate_lines = get_crate_lines();
     let mut stacks: Vec<Vec<char>> = get_crate_stacks(&crate_lines);
-    apply_move_commands(&mut stacks);
+    apply_move_commands(&mut stacks, crate_mover_version);
     print_top_crates(&stacks);
 }
 
 fn print_top_crates(stacks: &Vec<Vec<char>>) {
     print!("Crates on top of the stacks: ");
     for stack in stacks {
-        print!("{}", stack.last().unwrap());
+        if stack.is_empty() {
+            println!();
+        } else {
+            print!("{}", stack.last().unwrap());
+        }
     }
     println!();
 }
 
-fn apply_move_commands(mut stacks: &mut Vec<Vec<char>>) {
+fn apply_move_commands(mut stacks: &mut Vec<Vec<char>>, crate_mover_version: i32) {
     println!("Input move commands:\n");
     let re = regex::Regex::new(r"^move ([\d]{1,}) from ([\d]{1,}) to ([\d]{1,})").unwrap();
     for line_res in std::io::stdin().lines() {
@@ -38,7 +58,7 @@ fn apply_move_commands(mut stacks: &mut Vec<Vec<char>>) {
             break;
         }
 
-        apply_move(&mut stacks, cmd_res.unwrap());
+        apply_move(&mut stacks, cmd_res.unwrap(), crate_mover_version);
     }
 }
 
@@ -58,10 +78,23 @@ fn build_move_command(re: &Regex, line: String) -> Option<MoveCommand> {
     Some(cmd)
 }
 
-fn apply_move(stacks: &mut Vec<Vec<char>>, command: MoveCommand) {
-    for i in 0..command.crates_count {
-        let opt = stacks[command.src_stack - 1].pop();
-        stacks[command.dest_stack - 1].push(opt.unwrap());
+fn apply_move(stacks: &mut Vec<Vec<char>>, command: MoveCommand, crate_mover_version: i32) {
+    if crate_mover_version == VERSION_1_1 {
+        let mut tmp_stack: Vec<char> = vec![];
+        for i in 0..command.crates_count {
+            let opt = stacks[command.src_stack - 1].pop();
+            tmp_stack.push(opt.unwrap());
+        }
+        tmp_stack.reverse();
+        tmp_stack.retain(|item| {
+            stacks[command.dest_stack - 1].push(*item);
+            false
+        });
+    } else {
+        for i in 0..command.crates_count {
+            let opt = stacks[command.src_stack - 1].pop();
+            stacks[command.dest_stack - 1].push(opt.unwrap());
+        }
     }
 }
 

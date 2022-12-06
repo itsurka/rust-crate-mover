@@ -9,6 +9,13 @@ The Elves don't want to interrupt the crane operator during this delicate proced
 They do, however, have a drawing of the starting stacks of crates and the rearrangement procedure (your puzzle input).
 
 ## Build and run
+
+App parameters:
+
+- crate mover version: 9000 (default) or 9001.
+9000 - moves few crates with inverse ordering
+9001 - moves few crates without order change
+
 ```shell
 cargo run
 % cargo run
